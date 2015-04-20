@@ -6,6 +6,6 @@ javascript: (function() {
   };
   var d = document,
     s = d.createElement('script');
-  s.setAttribute('src', 'https://hypothes.is/app/core.js');  
+  s.setAttribute('src', 'https://raw.githubusercontent.com/mabushadi/u2/master/core.js');  
   d.body.appendChild(s)
 })();
