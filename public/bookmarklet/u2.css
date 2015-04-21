@@ -1,0 +1,18 @@
+.u2-sidebar {
+    position: fixed;
+    min-width:300px;
+    width:25%;
+    height:100%;
+    border:none;
+    top: 0;
+    right:0;
+    z-index: 1000;
+    background:#EEE;
+    padding: 10px;
+
+}
+
+.u2-preview {
+    max-height: 420px;
+    overflow: auto;
+}

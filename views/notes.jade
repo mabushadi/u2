@@ -1,0 +1,16 @@
+extends layout
+block content
+    div
+        form(action="/search")
+            input(name="query").search
+            button(type=submit) bla
+    h1 My notes
+    div
+        each note in notes
+            h2
+                a(href="#{note.url}")=note.title
+            div
+                !{note.content}
+            span.username
+                a(href="mailto:#{note.username}@ultimatesoftware.com")=note.username
+
