@@ -86,19 +86,20 @@
         function findElementsByText(text){
             if(!text) return [];
             var elements=$(":contains("+text+")")
-                .filter(function(){return $(this).children().length === 0 })
-                .parent();
+                .filter(function(){return $(this).children().length === 0})
+              //  .parent();
             return elements.length ? elements.not('head').toArray() : [];
         }
 
         function addPopoversForMatchingElements(title, notes, matchingElements){
-            if(matchingElements.length > 0) {
+            var titleNotes = '';
+            if(matchingElements.length > 0 && notes.length > 0) {
                 $(matchingElements).each(function(i, elem) {
-                    var titleNotes = '';
                     $(notes).each(function(i, n) {
                         var url = n.url ? n.url.substring(0, 40) + '...' : '';
                         titleNotes += '<div class="u2-pop-comments">' + n.comments + '</div><div class="us-pop-username">' + n.username + '</div><a href="' + n.url + '">' + url + "</a><hr>";
                     });
+                    //titleNotes = '<div class="u2-data">' + titleNotes + '</div>';
                     $(elem).css('background-color', 'pink');
                     $(elem).popover({
                         title : title,
@@ -108,6 +109,7 @@
                     });
                 });
             }
+            return titleNotes;
         }
 
         function getHtmlText(content){
@@ -128,17 +130,38 @@
                     //  do we have any notes in all db matching url
                     notesByUrl = notes.filter(function(note){return note.url == window.location.href});
                     $.each(notesByUrl, function(i, item) {
-                        var elementsByContent = findElementsByText(getHtmlText(item.content).substring(0,20));
-                        addPopoversForMatchingElements('Notes on this page', notesByUrl, elementsByContent);
+                        var elementsByContent = $(findElementsByText(getHtmlText(item.content).substring(0,20)));
+                        addPopoversForMatchingElements('Notes matching URL', notesByUrl, elementsByContent);
                     });
 
                     // lets match all knowledge/notes to current page
+                    //$.each(notes, function(i, item) {
+                    //    //  do we have matches on this page for the current note title?
+                    //    notesByTitle = notes.filter(function(note){return note.title == item.title});
+                    //    var elementsByTitle = $(findElementsByText(item.title));
+                    //    addPopoversForMatchingElements('Notes matching title: ' + item.title, notesByTitle, elementsByTitle);
+                    //});
+
                     $.each(notes, function(i, item) {
-                        //  do we have matches on this page for the current note title?
-                        notesByTitle = notes.filter(function(note){return note.title == item.title});
                         var elementsByTitle = findElementsByText(item.title);
-                        addPopoversForMatchingElements('Notes matching title: ' + item.title, notesByTitle, elementsByTitle);
+                        if(elementsByTitle.length){
+                            notesByTitle.push(item);
+                            addPopoversForMatchingElements('Notes matching titles', notesByTitle, elementsByTitle);
+                        }
                     });
+
+                    var annotationsContent = '<h3>Notes matching URL</h3>';
+                    $(notesByUrl).each(function(i, n) {
+                        var url = n.url ? n.url.substring(0, 40) + '...' : '';
+                        annotationsContent += '<div class="u2-pop-comments">' + n.comments + '</div><div class="us-pop-username">' + n.username + '</div><a href="' + n.url + '">' + url + "</a><hr>";
+                    });
+                    annotationsContent += '<h3>Notes matching titles</h3>';
+                    $(notesByTitle).each(function(i, n) {
+                        var url = n.url ? n.url.substring(0, 40) + '...' : '';
+                        annotationsContent += 'Matching title: ' + n.title +'<div class="u2-pop-comments">' + n.comments + '</div><div class="us-pop-username">' + n.username + '</div><a href="' + n.url + '">' + url + "</a><hr>";
+                    });
+
+                    $('#u2annotations').append(annotationsContent);
                 }
             });
         }
@@ -146,22 +169,35 @@
         function renderSidebar(){
             var notesUrl = domain + "/" + username + "/notes";
             var sidebar = $('body').append('' +
-            '<div class="form-group u2-sidebar">' +
-            '<button type="button" class="u2-close close" aria-label="Close"><span aria-hidden="true">&times;</span></button>' +
-            '<h4><a href="' + notesUrl + '" target="_blank">Ulti Notes</a></h4>' +
-            '<button class="btn btn-primary btn-sm u2-snip">Snip selection</button>' +
-            '<br><br>' +
-            '<input class="form-control u2-title" placeholder="Title"/><br>' +
-            '<input class="form-control u2-url" placeholder="URL"/> <br>' +
-            '<input class="form-control u2-username" placeholder="Username"/> <br>' +
-            '<input class="form-control u2-tags" placeholder="Tags"/> <br>' +
-            '<div class="u2-preview"></div>' +
-            '<select class="form-control u2-notebook"><option disabled selected value=""> -- Pick notebook -- </option><option value="Build Related">Build Related</option><option value="Infrastructure">Infrastructure</option><option value="Ulti-Fun">Ulti-Fun</option></select><br>' +
-            '<select class="form-control u2-team"><option disabled selected value=""> -- Pick team -- </option><option value="RST">RST Team</option><option value="UCN">UCN</option><option value="Tech support">Tech support</option></select><br>' +
-            '<textarea class="form-control u2-comments" placeholder="Enter comments"></textarea> ' +
-            '<br>' +
-            '<button class="btn btn-primary u2-save">Save</button>' +
-            '<button class="btn btn-default u2-close">Close</button>' +
+            '<div class="container form-group u2-sidebar" role="tabpanel">' +
+                '<ul class="nav nav-tabs" role="tablist">' +
+                    '<li role="presentation" class="nav active"><a href="#u2capture"  data-toggle="tab">Capture</a></li>' +
+                    '<li role="presentation" class="nav"><a href="#u2annotations"  data-toggle="tab">Annotations</a></li>' +
+                    '<li role="presentation" class="nav"><a href="#u2search"  data-toggle="tab">Search</a></li>' +
+                '</ul>' +
+                '<div class="tab-content">' +
+                    '<div id="u2capture" class="tab-pane active">' +
+                        '<button type="button" class="u2-close close" aria-label="Close"><span aria-hidden="true">&times;</span></button>' +
+                        '<h4><a href="' + notesUrl + '" target="_blank">Unity</a></h4>' +
+                        '<button class="btn btn-primary btn-sm u2-snip">Snip selection</button>' +
+                        '<br><br>' +
+                        '<input class="form-control u2-title" placeholder="Title"/><br>' +
+                        '<input class="form-control u2-url" placeholder="URL"/> <br>' +
+                        '<input class="form-control u2-username" placeholder="Username"/> <br>' +
+                        '<input class="form-control u2-tags" placeholder="Tags"/> <br>' +
+                        '<div class="u2-preview"></div>' +
+                        '<select class="form-control u2-notebook"><option disabled selected value=""> -- Pick notebook -- </option><option value="Build Related">Build Related</option><option value="Infrastructure">Infrastructure</option><option value="Ulti-Fun">Ulti-Fun</option></select><br>' +
+                        '<select class="form-control u2-team"><option disabled selected value=""> -- Pick team -- </option><option value="RST">RST Team</option><option value="UCN">UCN</option><option value="Tech support">Tech support</option></select><br>' +
+                        '<textarea class="form-control u2-comments" placeholder="Enter comments"></textarea> ' +
+                        '<br>' +
+                        '<button class="btn btn-primary u2-save">Save</button>' +
+                        '<button class="btn btn-default u2-close">Close</button>' +
+                    '</div>' +
+                    '<div id="u2annotations" class="tab-pane">' +
+                    '</div>' +
+                    '<div id="u2search" class="tab-pane">' +
+                    '</div>' +
+                '</div>' +
             '</div>');
             sidebar.find('button.u2-snip').on('click', function() {
                 var selectedText = getSelectionText();

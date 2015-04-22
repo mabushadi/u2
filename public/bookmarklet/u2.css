@@ -16,3 +16,10 @@
     max-height: 420px;
     overflow: auto;
 }
+
+.popover {
+    max-height: 400px;
+    overflow: auto;
+    width:500px;
+    overflow-x: hidden;
+}
