@@ -4,11 +4,17 @@ var router = express.Router();
 /* API */
 router.get('/savenotes', function(req, res, next) {
     var db = req.db;
+    var tags = req.query.tags && req.query.tags.length ? req.query.tags.split(',') : []
     var rec = db.get('notes').insert({
         title : req.query.title,
         url : req.query.url,
         content : req.query.content,
-        username : req.query.username
+        username : req.query.username,
+        comments : req.query.comments,
+        notebook : req.query.notebook,
+        team : req.query.team,
+        tags : tags,
+        timestamp : new Date()
     });
     res.jsonp(rec.query);
 });

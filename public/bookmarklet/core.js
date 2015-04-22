@@ -22,6 +22,9 @@
         inject = inject || {};
 
         var resources = [];
+        var domain = window.location.href.indexOf('https://') >= 0 ? 'https://localhost' : 'http://localhost:3000';
+        var username  = "mabushadi";
+        var notesByUrl = [], notesByTitle = [];
         var injectStylesheet = inject.stylesheet || function injectStylesheet(href, fn) {
                 var link = document.createElement('link');
                 link.rel = 'stylesheet';
@@ -80,12 +83,40 @@
             }
         }
 
-        function findElementByText(text){
-            var jSpot=$(":contains("+text+")")
-                .filter(function(){ return $(this).children().length === 0;})
-                .parent();  // because you asked the parent of that element
+        function findElementsByText(text){
+            if(!text) return [];
+            var elements=$(":contains("+text+")")
+                .filter(function(){return $(this).children().length === 0 })
+                .parent();
+            return elements.length ? elements.not('head').toArray() : [];
+        }
 
-            return jSpot;
+        function addPopoversForMatchingElements(title, notes, matchingElements){
+            if(matchingElements.length > 0) {
+                $(matchingElements).each(function(i, elem) {
+                    var titleNotes = '';
+                    $(notes).each(function(i, n) {
+                        var url = n.url ? n.url.substring(0, 40) + '...' : '';
+                        titleNotes += '<div class="u2-pop-comments">' + n.comments + '</div><div class="us-pop-username">' + n.username + '</div><a href="' + n.url + '">' + url + "</a><hr>";
+                    });
+                    $(elem).css('background-color', 'pink');
+                    $(elem).popover({
+                        title : title,
+                        content: titleNotes,
+                        html: true,
+                        placement: 'top'
+                    });
+                });
+            }
+        }
+
+        function getHtmlText(content){
+            var text = '';
+            try{
+                text = $(content).text().trim();
+            } catch(e){}
+
+            return text;
         }
 
         function bindNotes(){
@@ -93,11 +124,20 @@
                 url: domain + '/getnotes',
                 dataType: 'jsonp',
                 success: function(res) {
-                    $.each(res, function(i, item){
-                        var elem = findElementByText(item.title);
-                        if(elem.length > 0){
-                            console.log(elem);
-                        }
+                    var notes = res;
+                    //  do we have any notes in all db matching url
+                    notesByUrl = notes.filter(function(note){return note.url == window.location.href});
+                    $.each(notesByUrl, function(i, item) {
+                        var elementsByContent = findElementsByText(getHtmlText(item.content).substring(0,20));
+                        addPopoversForMatchingElements('Notes on this page', notesByUrl, elementsByContent);
+                    });
+
+                    // lets match all knowledge/notes to current page
+                    $.each(notes, function(i, item) {
+                        //  do we have matches on this page for the current note title?
+                        notesByTitle = notes.filter(function(note){return note.title == item.title});
+                        var elementsByTitle = findElementsByText(item.title);
+                        addPopoversForMatchingElements('Notes matching title: ' + item.title, notesByTitle, elementsByTitle);
                     });
                 }
             });
@@ -111,10 +151,13 @@
             '<h4><a href="' + notesUrl + '" target="_blank">Ulti Notes</a></h4>' +
             '<button class="btn btn-primary btn-sm u2-snip">Snip selection</button>' +
             '<br><br>' +
-            '<input class="form-control u2-title" placeholder="Title"/> ' +
-            '<input class="form-control u2-url" placeholder="URL"/> ' +
-            '<input class="form-control u2-username" placeholder="Username"/> ' +
+            '<input class="form-control u2-title" placeholder="Title"/><br>' +
+            '<input class="form-control u2-url" placeholder="URL"/> <br>' +
+            '<input class="form-control u2-username" placeholder="Username"/> <br>' +
+            '<input class="form-control u2-tags" placeholder="Tags"/> <br>' +
             '<div class="u2-preview"></div>' +
+            '<select class="form-control u2-notebook"><option disabled selected value=""> -- Pick notebook -- </option><option value="Build Related">Build Related</option><option value="Infrastructure">Infrastructure</option><option value="Ulti-Fun">Ulti-Fun</option></select><br>' +
+            '<select class="form-control u2-team"><option disabled selected value=""> -- Pick team -- </option><option value="RST">RST Team</option><option value="UCN">UCN</option><option value="Tech support">Tech support</option></select><br>' +
             '<textarea class="form-control u2-comments" placeholder="Enter comments"></textarea> ' +
             '<br>' +
             '<button class="btn btn-primary u2-save">Save</button>' +
@@ -123,8 +166,13 @@
             sidebar.find('button.u2-snip').on('click', function() {
                 var selectedText = getSelectionText();
                 var selectedHTML = getSelectionHTML();
+                var header = null;
+                try {
+                    header = $(selectedHTML).filter(':header').first().text();
+                } catch(x){}
+                debugger
                 $('.u2-sidebar').find('.u2-preview').html(selectedHTML);
-                $('.u2-title').val(selectedText.substring(0, 30));
+                $('.u2-title').val(header || selectedText.substring(0, 30));
                 $('.u2-url').val(window.location.href);
                 $('.u2-username').val(username);
             });
@@ -140,37 +188,40 @@
                         title : $('.u2-title').val(),
                         url : $('.u2-url').val(),
                         comments : $('.u2-comments').val(),
+                        team : $('.u2-team').val(),
+                        notebook : $('.u2-notebook').val(),
+                        tags :  $('.u2-tags').val(),
                         content : $('.u2-preview').html()
                     },
                     success: function(res) {
                         $('.u2-sidebar').hide();
+                        bindNotes();
                     }
                 });
             });
         }
 
 
-        if(!window.document.evaluate) {
-            resources = resources.concat(['https://hypothes.is/assets/scripts/vendor/polyfills/wgxpath.install.min.js?bab1c82f']);
-        }
+        //if(!window.document.evaluate) {
+        //    resources = resources.concat(['https://hypothes.is/assets/scripts/vendor/polyfills/wgxpath.install.min.js?bab1c82f']);
+        //}
+        //
+        //// https://github.com/Modernizr/Modernizr/blob/master/feature-detects/url/parser.js
+        //var url, urlWorks;
+        //try {
+        //    // have to actually try use it, because Safari defines a dud constructor
+        //    url = new URL('http://modernizr.com/');
+        //    urlWorks = url.href === 'http://modernizr.com/';
+        //}
+        //catch(err) {
+        //    urlWorks = false;
+        //}
+        //if(!urlWorks) {
+        //    resources = resources.concat(['https://hypothes.is/assets/scripts/vendor/polyfills/url.min.js?de686538']);
+        //}
 
-        // https://github.com/Modernizr/Modernizr/blob/master/feature-detects/url/parser.js
-        var url, urlWorks;
-        try {
-            // have to actually try use it, because Safari defines a dud constructor
-            url = new URL('http://modernizr.com/');
-            urlWorks = url.href === 'http://modernizr.com/';
-        }
-        catch(err) {
-            urlWorks = false;
-        }
-        if(!urlWorks) {
-            resources = resources.concat(['https://hypothes.is/assets/scripts/vendor/polyfills/url.min.js?de686538']);
-        }
 
-        var domain = window.location.href.indexOf('https://') >= 0 ? 'https://localhost' : 'http://localhost:3000';
-        var username  = "mabushadi";
-        if(typeof window.Annotator === 'undefined') {
+        if(typeof window.u2_loaded === 'undefined') {
             resources = resources.concat([
                 '//ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js',
                 '//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css',
@@ -190,6 +241,7 @@
                 fn(url, next);
             } else {
                 console.log('Finished loading u2...');
+                window.u2_loaded = true;
                 renderSidebar();
                 bindNotes();
             }
