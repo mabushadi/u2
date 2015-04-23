@@ -18,6 +18,7 @@
     //       chrome.tabs.insertCSS(tab.id, {file: href}, fn);
     //     }
     //   });
+
     window.u2Install = function(inject) {
         inject = inject || {};
 
@@ -83,6 +84,12 @@
             }
         }
 
+        function url_domain(data) {
+            var    a      = document.createElement('a');
+            a.href = data;
+            return a.hostname;
+        }
+
         function findElementsByText(text){
             if(!text) return [];
             var elements=$(":contains("+text+")")
@@ -91,34 +98,52 @@
             return elements.length ? elements.not('head').toArray() : [];
         }
 
-        function addPopoversForMatchingElements(title, notes, matchingElements){
-            var titleNotes = '';
-            if(matchingElements.length > 0 && notes.length > 0) {
-                $(matchingElements).each(function(i, elem) {
-                    $(notes).each(function(i, n) {
-                        var url = n.url ? n.url.substring(0, 40) + '...' : '';
-                        titleNotes += '<div class="u2-pop-comments">' + n.comments + '</div><div class="us-pop-username">' + n.username + '</div><a href="' + n.url + '">' + url + "</a><hr>";
-                    });
-                    //titleNotes = '<div class="u2-data">' + titleNotes + '</div>';
-                    $(elem).css('background-color', 'pink');
-                    $(elem).popover({
-                        title : title,
-                        content: titleNotes,
-                        html: true,
-                        placement: 'top'
-                    });
-                });
-            }
-            return titleNotes;
-        }
-
         function getHtmlText(content){
             var text = '';
             try{
                 text = $(content).text().trim();
             } catch(e){}
-
             return text;
+        }
+
+        function addPopoversForMatchingElements(title, notes, matchingElements){
+            if(matchingElements.length > 0 && notes.length > 0) {
+                $(matchingElements).each(function(i, elem) {
+                    $(elem).css('background-color', 'pink');
+                    $(elem).popover({
+                        title : title,
+                        content: getNotesMarkup(null, notes),
+                        html: true,
+                        placement: 'bottom'
+                    });
+                });
+            }
+        }
+
+        function getNotesMarkup(title, notes){
+            var content = title ? '<h4>' + title + '</h4>' : '';
+            $(notes).each(function(i, n) {
+                var url = n.url ? n.url.substring(0, 90) + '...' : '';
+                content += '' +
+                '<div class="u2-row">' +
+                    '<div class="u2-source"><a href="' + n.url + '" target="_blank">'+url_domain(n.url) +'</a></div>' +
+                    '<div class="u2-username"><a href="mailto:' + n.username + '@ultimatesoftware.com"' + '">' + n.username  +'</a></div>' +
+                    '<div class="u2-date">'+ moment(n.timestamp).startOf('hour').fromNow()  +'</div>' +
+                    '<div class="u2-comments">' + n.comments + '</div>' +
+                    '<a class="u2-show-content" href="#">show content</a>' +
+                    '<div class="u2-content" style="display:none">' + n.content + '</div>' +
+                '</div>';
+            });
+            if(notes.length == 0){
+                content += 'No matches found<br>';
+            }
+
+            content = $(content);
+            content.find('.u2-show-content').on('click', function(){
+                $(this).next().toggle();
+            });
+
+            return content;
         }
 
         function bindNotes(){
@@ -129,39 +154,23 @@
                     var notes = res;
                     //  do we have any notes in all db matching url
                     notesByUrl = notes.filter(function(note){return note.url == window.location.href});
+                    var elementsByContent = [];
                     $.each(notesByUrl, function(i, item) {
-                        var elementsByContent = $(findElementsByText(getHtmlText(item.content).substring(0,20)));
-                        addPopoversForMatchingElements('Notes matching URL', notesByUrl, elementsByContent);
+                        elementsByContent = $(findElementsByText(getHtmlText(item.content).substring(0,25)));
+                        addPopoversForMatchingElements('Notes matching url', notesByUrl, elementsByContent);
                     });
 
-                    // lets match all knowledge/notes to current page
-                    //$.each(notes, function(i, item) {
-                    //    //  do we have matches on this page for the current note title?
-                    //    notesByTitle = notes.filter(function(note){return note.title == item.title});
-                    //    var elementsByTitle = $(findElementsByText(item.title));
-                    //    addPopoversForMatchingElements('Notes matching title: ' + item.title, notesByTitle, elementsByTitle);
-                    //});
-
+                    var elementsByTitle = [];
                     $.each(notes, function(i, item) {
-                        var elementsByTitle = findElementsByText(item.title);
+                        elementsByTitle = findElementsByText(item.title);
                         if(elementsByTitle.length){
                             notesByTitle.push(item);
-                            addPopoversForMatchingElements('Notes matching titles', notesByTitle, elementsByTitle);
                         }
                     });
+                    addPopoversForMatchingElements('Notes matching titles', notesByTitle, elementsByTitle);
 
-                    var annotationsContent = '<h3>Notes matching URL</h3>';
-                    $(notesByUrl).each(function(i, n) {
-                        var url = n.url ? n.url.substring(0, 40) + '...' : '';
-                        annotationsContent += '<div class="u2-pop-comments">' + n.comments + '</div><div class="us-pop-username">' + n.username + '</div><a href="' + n.url + '">' + url + "</a><hr>";
-                    });
-                    annotationsContent += '<h3>Notes matching titles</h3>';
-                    $(notesByTitle).each(function(i, n) {
-                        var url = n.url ? n.url.substring(0, 40) + '...' : '';
-                        annotationsContent += 'Matching title: ' + n.title +'<div class="u2-pop-comments">' + n.comments + '</div><div class="us-pop-username">' + n.username + '</div><a href="' + n.url + '">' + url + "</a><hr>";
-                    });
-
-                    $('#u2annotations').append(annotationsContent);
+                    $('#u2annotations').append(getNotesMarkup('Notes matching url', notesByUrl));
+                    $('#u2annotations').append(getNotesMarkup('Notes matching titles', notesByTitle));
                 }
             });
         }
@@ -195,7 +204,12 @@
                     '</div>' +
                     '<div id="u2annotations" class="tab-pane">' +
                     '</div>' +
-                    '<div id="u2search" class="tab-pane">' +
+                    '<div id="u2search" class="tab-pane"><br>' +
+                        '<div class="input-group">' +
+                            '<input class="form-control u2-searchbox" placeholder="Search for..."/>' +
+                            '<span class="input-group-btn"><button class="btn btn-primary u2-searchbutton">Search</button></span>' +
+                        '</div>' +
+                        '<div class="u2-searchresults"></div>' +
                     '</div>' +
                 '</div>' +
             '</div>');
@@ -206,7 +220,6 @@
                 try {
                     header = $(selectedHTML).filter(':header').first().text();
                 } catch(x){}
-                debugger
                 $('.u2-sidebar').find('.u2-preview').html(selectedHTML);
                 $('.u2-title').val(header || selectedText.substring(0, 30));
                 $('.u2-url').val(window.location.href);
@@ -232,6 +245,18 @@
                     success: function(res) {
                         $('.u2-sidebar').hide();
                         bindNotes();
+                    }
+                });
+            });
+            sidebar.find('button.u2-searchbutton').on('click', function(){
+                $.ajax({
+                    url: domain + '/getnotes',
+                    dataType: 'jsonp',
+                    data: {
+                        title : $('.u2-searchbox').val()
+                    },
+                    success: function(res) {
+                        $('.u2-searchresults').html('').append(getNotesMarkup('Search results for: <i>' + $('.u2-searchbox').val() + '</i>', res));
                     }
                 });
             });
@@ -262,6 +287,7 @@
                 '//ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js',
                 '//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css',
                 '//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js',
+                '//cdnjs.cloudflare.com/ajax/libs/moment.js/2.10.2/moment.min.js',
                 domain + '/bookmarklet/u2.css']);
         }
 

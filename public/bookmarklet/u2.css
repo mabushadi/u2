@@ -1,15 +1,23 @@
 .u2-sidebar {
     position: fixed;
-    min-width:300px;
-    width:25%;
+    min-width: 340px;
+    width: 35%;
     height:100%;
     border:none;
     top: 0;
     right:0;
     z-index: 1000;
-    background:#EEE;
+    background:#FFF;
     padding: 10px;
+    border-left: 2px solid #EEE;
 
+}
+
+.u2-sidebar .tab-pane {
+    height:600px;
+    overflow: auto;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
 }
 
 .u2-preview {
@@ -17,9 +25,43 @@
     overflow: auto;
 }
 
+.u2-row{
+    border-bottom: 1px dotted #EEE;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+}
+
+.u2-row .u2-source{
+    font-weight: bold;
+}
+
+.u2-row .u2-comments{
+    font-style: italic;
+}
+.u2-row .u2-username, .u2-row .u2-date{
+    font-size: 11px;
+    text-align:right;
+    display:inline;
+}
+.u2-row .u2-date{
+    color: gray;
+    padding-left: 5px;
+}
+
+.u2-show-content {
+    text-align:right;
+    font-size: 11px;
+}
+
+.u2-content {
+    background-color: #EEE;
+    padding: 5px;
+}
+
 .popover {
     max-height: 400px;
     overflow: auto;
     width:500px;
     overflow-x: hidden;
+    max-width: 100%;
 }
