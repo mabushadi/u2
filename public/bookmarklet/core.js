@@ -114,7 +114,7 @@
         function addPopoversForMatchingElements(title, notes, matchingElements){
             if(matchingElements.length > 0 && notes.length > 0) {
                 $(matchingElements).each(function(i, elem) {
-                    $(elem).css('background-color', 'pink');
+                    $(elem).css('background-color', '#BDF8A7');
                     $(elem).popover({
                         title : title,
                         content: getNotesMarkup(null, notes),
