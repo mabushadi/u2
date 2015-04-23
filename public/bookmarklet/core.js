@@ -200,7 +200,9 @@
                         '<div class="u2-preview"></div>' +
                         '<select class="form-control u2-notebook"><option disabled selected value=""> -- Pick notebook -- </option><option value="Build Related">Build Related</option><option value="Infrastructure">Infrastructure</option><option value="Ulti-Fun">Ulti-Fun</option></select><br>' +
                         '<select class="form-control u2-team"><option disabled selected value=""> -- Pick team -- </option><option value="RST">RST Team</option><option value="UCN">UCN</option><option value="Tech support">Tech support</option></select><br>' +
-                        '<textarea class="form-control u2-comments" placeholder="Enter comments"></textarea> ' +
+                        '<textarea class="form-control u2-comments" placeholder="Enter comments"></textarea> <br>' +
+                        '<label>Private to me &nbsp;</label>' +
+                        '<input type="checkbox" class="u2-private" /> <br>' +
                         '<br>' +
                         '<button class="btn btn-primary u2-save">Save</button>' +
                         '<button class="btn btn-default u2-close">Close</button>' +
