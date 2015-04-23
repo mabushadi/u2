@@ -4,9 +4,14 @@
     margin-bottom: 10px;
     font-size: 20px;
 }
+
 .u2-header img {
     width: 9%;
     margin-right: 10px;
+}
+
+.u2-header a {
+    color: white;
 }
 
 .u2-sidebar {
@@ -48,6 +53,9 @@
 
 .u2-row .u2-comments{
     font-style: italic;
+    font-family: time;
+    margin-top: 10px;
+    margin-left: 15px;
 }
 .u2-row .u2-username, .u2-row .u2-date{
     font-size: 11px;
@@ -62,11 +70,13 @@
 .u2-show-content {
     text-align:right;
     font-size: 11px;
+    margin-left: 15px;
 }
 
 .u2-content {
     background-color: #EEE;
     padding: 5px;
+    margin-left: 15px;
 }
 
 .popover {
