@@ -178,7 +178,10 @@
         function renderSidebar(){
             var notesUrl = domain + "/" + username + "/notes";
             var sidebar = $('body').append('' +
+
             '<div class="container form-group u2-sidebar" role="tabpanel">' +
+
+                '<div class="u2-header"><img src="https://lh3.googleusercontent.com/-HIqI6a2CJ1Q/AAAAAAAAAAI/AAAAAAAABjM/PA3c54SLVw0/photo.jpg"/>Ulti Unity</div>' +
                 '<ul class="nav nav-tabs" role="tablist">' +
                     '<li role="presentation" class="nav active"><a href="#u2capture"  data-toggle="tab">Capture</a></li>' +
                     '<li role="presentation" class="nav"><a href="#u2annotations"  data-toggle="tab">Annotations</a></li>' +
