@@ -173,7 +173,7 @@
 
                     var elementsByTitle = [];
                     $.each(notes, function(i, item) {
-                        if(item.tags.length) {
+                        if(item.tags && item.tags.length) {
                             elementsByTitle = elementsByTitle.concat(findElementsByText(item.tags));
                             if (elementsByTitle.length) {
                                 notesByTitle.push(item);
