@@ -34,6 +34,11 @@
     overflow: auto;
     padding-bottom: 10px;
     margin-bottom: 10px;
+    margin-top: 10px;
+}
+
+.u2-sidebar h4 {
+    margin-top: 20px;
 }
 
 .u2-preview {
@@ -65,16 +70,18 @@
 .u2-row .u2-date{
     color: gray;
     padding-left: 5px;
+    padding-right: 10px;
 }
 
 .u2-show-content {
     text-align:right;
     font-size: 11px;
     margin-left: 15px;
+    color: rgb(75, 180, 71);
+    cursor: pointer;
 }
 
 .u2-content {
-    background-color: #EEE;
     padding: 5px;
     margin-left: 15px;
 }

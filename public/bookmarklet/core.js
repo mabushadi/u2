@@ -95,6 +95,11 @@
             var elements=$(":contains("+text+")")
                 .filter(function(){return $(this).children().length === 0})
               //  .parent();
+
+            if(elements.length == 0) {
+                elements = $(":contains(" + text + ")").last();
+            }
+
             return elements.length ? elements.not('head').toArray() : [];
         }
 
@@ -129,8 +134,9 @@
                     '<div class="u2-source"><a href="' + n.url + '" target="_blank">'+url_domain(n.url) +'</a></div>' +
                     '<div class="u2-username"><a href="mailto:' + n.username + '@ultimatesoftware.com"' + '">' + n.username  +'</a></div>' +
                     '<div class="u2-date">'+ moment(n.timestamp).startOf('hour').fromNow()  +'</div>' +
+                    '<span class="label label-success">' + n.tags + '</span>' +
                     '<div class="u2-comments">' + n.comments + '</div>' +
-                    '<a class="u2-show-content" href="#">show content</a>' +
+                    '<a class="u2-show-content" >show content</a>' +
                     '<div class="u2-content" style="display:none">' + n.content + '</div>' +
                 '</div>';
             });
@@ -154,17 +160,24 @@
                     var notes = res;
                     //  do we have any notes in all db matching url
                     notesByUrl = notes.filter(function(note){return note.url == window.location.href});
+
                     var elementsByContent = [];
                     $.each(notesByUrl, function(i, item) {
-                        elementsByContent = $(findElementsByText(getHtmlText(item.content).substring(0,25)));
+                        var contentSearchString;
+                        try {
+                            contentSearchString = getHtmlText(item.content).split('\n')[0].substring(0,25);
+                        }catch(ex){}
+                        elementsByContent = $(findElementsByText(contentSearchString));
                         addPopoversForMatchingElements('Notes matching url', notesByUrl, elementsByContent);
                     });
 
                     var elementsByTitle = [];
                     $.each(notes, function(i, item) {
-                        elementsByTitle = findElementsByText(item.title);
-                        if(elementsByTitle.length){
-                            notesByTitle.push(item);
+                        if(item.tags.length) {
+                            elementsByTitle = elementsByTitle.concat(findElementsByText(item.tags));
+                            if (elementsByTitle.length) {
+                                notesByTitle.push(item);
+                            }
                         }
                     });
                     addPopoversForMatchingElements('Notes matching titles', notesByTitle, elementsByTitle);
@@ -180,8 +193,8 @@
             var sidebar = $('body').append('' +
 
             '<div class="container form-group u2-sidebar" role="tabpanel">' +
-
                 '<div class="u2-header"><img src="https://lh3.googleusercontent.com/-HIqI6a2CJ1Q/AAAAAAAAAAI/AAAAAAAABjM/PA3c54SLVw0/photo.jpg"/><a target="_blank" href="'+ notesUrl +'">Ulti Unity</a></div>' +
+                '<button type="button" class="u2-close close" aria-label="Close"><span aria-hidden="true">&times;</span></button>' +
                 '<ul class="nav nav-tabs" role="tablist">' +
                     '<li role="presentation" class="nav active"><a href="#u2capture"  data-toggle="tab">Capture</a></li>' +
                     '<li role="presentation" class="nav"><a href="#u2annotations"  data-toggle="tab">Annotations</a></li>' +
@@ -189,8 +202,6 @@
                 '</ul>' +
                 '<div class="tab-content">' +
                     '<div id="u2capture" class="tab-pane active">' +
-                        '<button type="button" class="u2-close close" aria-label="Close"><span aria-hidden="true">&times;</span></button>' +
-                        '<h4><a href="' + notesUrl + '" target="_blank">Unity</a></h4>' +
                         '<button class="btn btn-primary btn-sm u2-snip">Snip selection</button>' +
                         '<br><br>' +
                         '<input class="form-control u2-title" placeholder="Title"/><br>' +
@@ -226,7 +237,7 @@
                     header = $(selectedHTML).filter(':header').first().text();
                 } catch(x){}
                 $('.u2-sidebar').find('.u2-preview').html(selectedHTML);
-                $('.u2-title').val(header || selectedText.substring(0, 30));
+                $('.u2-title').val(header || selectedText.substring(0, 75));
                 $('.u2-url').val(window.location.href);
                 $('.u2-username').val(username);
             });

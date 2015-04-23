@@ -4,7 +4,8 @@ var router = express.Router();
 /* API */
 router.get('/savenotes', function(req, res, next) {
     var db = req.db;
-    var tags = req.query.tags && req.query.tags.length ? req.query.tags.split(',') : []
+    //var tags = req.query.tags && req.query.tags.length ? req.query.tags.split(',') : []; //  handle multi tags later
+
     var rec = db.get('notes').insert({
         title : req.query.title,
         url : req.query.url,
@@ -13,7 +14,7 @@ router.get('/savenotes', function(req, res, next) {
         comments : req.query.comments,
         notebook : req.query.notebook,
         team : req.query.team,
-        tags : tags,
+        tags : req.query.tags,
         timestamp : new Date()
     });
     res.jsonp(rec.query);
