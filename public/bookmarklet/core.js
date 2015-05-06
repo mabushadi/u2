@@ -165,25 +165,30 @@
                     $.each(notesByUrl, function(i, item) {
                         var contentSearchString;
                         try {
-                            contentSearchString = getHtmlText(item.content).split('\n')[0].substring(0,25);
+                            //contentSearchString = getHtmlText(item.content).split('\n')[0].substring(0,25);
+                            contentSearchString =  getHtmlText($(item.content).first());
                         }catch(ex){}
-                        elementsByContent = $(findElementsByText(contentSearchString));
-                        addPopoversForMatchingElements('Notes matching url', notesByUrl, elementsByContent);
+                        //elementsByContent = $(findElementsByText(contentSearchString));
+                        elementsByContent = elementsByContent.concat($(findElementsByText(contentSearchString)));
+                       // addPopoversForMatchingElements('Noted on this page', notesByUrl, elementsByContent);
                     });
 
-                    var elementsByTitle = [];
+                    var elementsByTag = [];
                     $.each(notes, function(i, item) {
                         if(item.tags.length) {
-                            elementsByTitle = elementsByTitle.concat(findElementsByText(item.tags));
-                            if (elementsByTitle.length) {
+                            elementsByTag = elementsByTag.concat(findElementsByText(item.tags));
+                            //elementsByTag = findElementsByText(item.tags);
+                            if (elementsByTag.length && notesByUrl.filter(function(note){return note._id == item._id}).length == 0) {
                                 notesByTitle.push(item);
                             }
                         }
                     });
-                    addPopoversForMatchingElements('Notes matching titles', notesByTitle, elementsByTitle);
+                    //addPopoversForMatchingElements('Noted on this page', notesByUrl, elementsByContent);
+                    //addPopoversForMatchingElements('Related notes', notesByTitle, elementsByTag);
+                    addPopoversForMatchingElements('Related notes', notesByUrl.concat(notesByTitle), elementsByTag.concat(elementsByContent));
 
-                    $('#u2annotations').append(getNotesMarkup('Notes matching url', notesByUrl));
-                    $('#u2annotations').append(getNotesMarkup('Notes matching titles', notesByTitle));
+                    $('#u2annotations').append(getNotesMarkup('Noted on this page', notesByUrl));
+                    $('#u2annotations').append(getNotesMarkup('Related notes', notesByTitle));
                 }
             });
         }
