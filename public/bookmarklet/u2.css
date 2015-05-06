@@ -46,6 +46,10 @@
     overflow: auto;
 }
 
+.u2-preview.ql-container {
+    height: auto;
+}
+
 .u2-row{
     border-bottom: 1px dotted #EEE;
     padding-bottom: 10px;

@@ -164,7 +164,7 @@
                     $.each(notesByUrl, function(i, item) {
                         var contentSearchString;
                         try {
-                            contentSearchString =  getHtmlText($(item.content).first());
+                            contentSearchString =  getHtmlText($(item.content).first()).substring(0,35);
                         }catch(ex){}
                         elementsByContent = elementsByContent.concat($(findElementsByText(contentSearchString)));
                     });
@@ -172,9 +172,10 @@
                     var elementsByTag = [];
                     $.each(notes, function(i, item) {
                         if(item.tags.length) {
-                            elementsByTag = elementsByTag.concat(findElementsByText(item.tags));
+                            var currElements = findElementsByText(item.tags);
+                            elementsByTag = elementsByTag.concat(currElements);
                             //elementsByTag = findElementsByText(item.tags);
-                            if (elementsByTag.length && notesByUrl.filter(function(note){return note._id == item._id}).length == 0) {
+                            if (currElements.length && notesByUrl.filter(function(note){return note._id == item._id}).length == 0) {
                                 notesByTitle.push(item);
                             }
                         }
@@ -184,6 +185,11 @@
                     $('#u2annotations').append(getNotesMarkup('Related notes', notesByTitle));
                 }
             });
+        }
+
+        var snippetEditor;
+        function initSnippetEditor(){
+            snippetEditor = new Quill('.u2-preview');
         }
 
         function renderSidebar(){
@@ -206,6 +212,7 @@
                         '<input class="form-control u2-url" placeholder="URL"/> <br>' +
                         '<input class="form-control u2-username" placeholder="Username"/> <br>' +
                         '<input class="form-control u2-tags" placeholder="Tags"/> <br>' +
+                        '<label>Snippet content</label>' +
                         '<div class="u2-preview"></div>' +
                         '<select class="form-control u2-notebook"><option disabled selected value=""> -- Pick notebook -- </option><option value="Build Related">Build Related</option><option value="Infrastructure">Infrastructure</option><option value="Ulti-Fun">Ulti-Fun</option></select><br>' +
                         '<select class="form-control u2-team"><option disabled selected value=""> -- Pick team -- </option><option value="RST">RST Team</option><option value="UCN">UCN</option><option value="Tech support">Tech support</option></select><br>' +
@@ -234,7 +241,10 @@
                 try {
                     header = $(selectedHTML).filter(':header').first().text();
                 } catch(x){}
-                $('.u2-sidebar').find('.u2-preview').html(selectedHTML);
+              //  $('.u2-sidebar').find('.u2-preview').html(selectedHTML);
+
+                snippetEditor.setHTML(selectedHTML);
+
                 $('.u2-title').val(header || selectedText.substring(0, 75));
                 $('.u2-url').val(window.location.href);
                 $('.u2-username').val(username);
@@ -254,7 +264,8 @@
                         team : $('.u2-team').val(),
                         notebook : $('.u2-notebook').val(),
                         tags :  $('.u2-tags').val(),
-                        content : $('.u2-preview').html()
+                     //   content : $('.u2-preview').html()
+                        content : snippetEditor.getHTML()
                     },
                     success: function(res) {
                         $('.u2-sidebar').hide();
@@ -274,6 +285,8 @@
                     }
                 });
             });
+
+            initSnippetEditor();
         }
 
         if(typeof window.u2_loaded === 'undefined') {
@@ -282,6 +295,7 @@
                 '//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css',
                 '//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js',
                 '//cdnjs.cloudflare.com/ajax/libs/moment.js/2.10.2/moment.min.js',
+                '//cdn.quilljs.com/0.19.11/quill.js',
                 domain + '/bookmarklet/u2.css']);
         }
 
