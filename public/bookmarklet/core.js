@@ -158,19 +158,15 @@
                 dataType: 'jsonp',
                 success: function(res) {
                     var notes = res;
-                    //  do we have any notes in all db matching url
                     notesByUrl = notes.filter(function(note){return note.url == window.location.href});
 
                     var elementsByContent = [];
                     $.each(notesByUrl, function(i, item) {
                         var contentSearchString;
                         try {
-                            //contentSearchString = getHtmlText(item.content).split('\n')[0].substring(0,25);
                             contentSearchString =  getHtmlText($(item.content).first());
                         }catch(ex){}
-                        //elementsByContent = $(findElementsByText(contentSearchString));
                         elementsByContent = elementsByContent.concat($(findElementsByText(contentSearchString)));
-                       // addPopoversForMatchingElements('Noted on this page', notesByUrl, elementsByContent);
                     });
 
                     var elementsByTag = [];
@@ -183,10 +179,7 @@
                             }
                         }
                     });
-                    //addPopoversForMatchingElements('Noted on this page', notesByUrl, elementsByContent);
-                    //addPopoversForMatchingElements('Related notes', notesByTitle, elementsByTag);
                     addPopoversForMatchingElements('Related notes', notesByUrl.concat(notesByTitle), elementsByTag.concat(elementsByContent));
-
                     $('#u2annotations').append(getNotesMarkup('Noted on this page', notesByUrl));
                     $('#u2annotations').append(getNotesMarkup('Related notes', notesByTitle));
                 }
@@ -283,26 +276,6 @@
             });
         }
 
-
-        //if(!window.document.evaluate) {
-        //    resources = resources.concat(['https://hypothes.is/assets/scripts/vendor/polyfills/wgxpath.install.min.js?bab1c82f']);
-        //}
-        //
-        //// https://github.com/Modernizr/Modernizr/blob/master/feature-detects/url/parser.js
-        //var url, urlWorks;
-        //try {
-        //    // have to actually try use it, because Safari defines a dud constructor
-        //    url = new URL('http://modernizr.com/');
-        //    urlWorks = url.href === 'http://modernizr.com/';
-        //}
-        //catch(err) {
-        //    urlWorks = false;
-        //}
-        //if(!urlWorks) {
-        //    resources = resources.concat(['https://hypothes.is/assets/scripts/vendor/polyfills/url.min.js?de686538']);
-        //}
-
-
         if(typeof window.u2_loaded === 'undefined') {
             resources = resources.concat([
                 '//ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js',
@@ -330,6 +303,5 @@
             }
         })();
     }
-
     window.u2Install();
 })();
